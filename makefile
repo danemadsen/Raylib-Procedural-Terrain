@@ -11,6 +11,7 @@ main:
 
 testing:
 	$(CC) $(CFLAGS) testing.c -o testing $(LDFLAGS)
+	rm -f *.o
 
 .PHONY: clean
 clean:

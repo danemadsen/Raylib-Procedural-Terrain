@@ -2,8 +2,8 @@
 
 #define CHUNK_SIZE 256
 #define NOISE_HEIGHT_SCALE 4
-#define OFFSET_X -900
-#define OFFSET_Y -3500
+#define OFFSET_X 824
+#define OFFSET_Y -3300
 #define IMAGE_SIZE 2048 // Image size to see more than one chunk
 
 int main() {
