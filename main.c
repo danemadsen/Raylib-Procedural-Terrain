@@ -12,6 +12,11 @@
 #define NOISE_HEIGHT_SCALE 2.0f
 #define NOISE_SPEED 0.6f
 
+#define CAMERA_MOVEMENT_SPEED 30.0f
+#define CAMERA_ROTATION_SPEED 1.0f
+#define CAMERA_ZOOM 1.0f
+#define CAMERA_SPEEDUP_FACTOR 2.0f
+
 typedef struct Chunk {
     Vector3 position;
     Model model;
@@ -111,8 +116,35 @@ int main() {
     camera.fovy = 45.0f;
     camera.projection = CAMERA_PERSPECTIVE;
 
+    Vector2 oldMousePos = GetMousePosition(); // Initialize with the current mouse position to avoid initial jump
+
     while (!WindowShouldClose()) {
-        UpdateCamera(&camera, CAMERA_FREE);
+        Vector2 mousePos = GetMousePosition();
+        Vector2 mouseDelta = { mousePos.x - oldMousePos.x, mousePos.y - oldMousePos.y };
+        oldMousePos = mousePos;
+
+        float movementSpeed = CAMERA_MOVEMENT_SPEED;
+
+        if (IsKeyDown(KEY_LEFT_SHIFT)) movementSpeed *= CAMERA_SPEEDUP_FACTOR;
+
+        // Calculate the movement vector
+        Vector3 movement = { 0.0f, 0.0f, 0.0f };
+        if (IsKeyDown(KEY_W)) movement.x += movementSpeed * GetFrameTime(); // Updated axis to match UpdateCameraPro()
+        if (IsKeyDown(KEY_S)) movement.x -= movementSpeed * GetFrameTime(); // Updated axis
+        if (IsKeyDown(KEY_A)) movement.y -= movementSpeed * GetFrameTime(); // Updated axis
+        if (IsKeyDown(KEY_D)) movement.y += movementSpeed * GetFrameTime(); // Updated axis
+        if (IsKeyDown(KEY_SPACE)) movement.z += movementSpeed * GetFrameTime();
+        if (IsKeyDown(KEY_LEFT_CONTROL)) movement.z -= movementSpeed * GetFrameTime();
+
+        // Calculate the rotation vector
+        Vector3 rotation = { mouseDelta.x * CAMERA_ROTATION_SPEED, mouseDelta.y * CAMERA_ROTATION_SPEED, 0.0f };
+
+        // Update the camera with the calculated vectors
+        UpdateCameraPro(&camera, movement, rotation, 0.0f);
+
+        // Reset the rotation vector if the mouse is not moving
+        if (mouseDelta.x == 0 && mouseDelta.y == 0) rotation = (Vector3){ 0.0f, 0.0f, 0.0f };
+    
         UpdateChunks(camera.position);
 
         BeginDrawing();
