@@ -10,8 +10,8 @@ main:
 	rm -f *.o
 
 testing:
+	rm -f testing *.o
 	$(CC) $(CFLAGS) testing.c -o testing $(LDFLAGS)
-	rm -f *.o
 
 .PHONY: clean
 clean:
