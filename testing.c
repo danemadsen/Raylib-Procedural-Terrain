@@ -2,10 +2,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <errno.h> // New include for strtol error handling
+#include <errno.h>
 
-#define CHUNK_SIZE 256
-#define NOISE_HEIGHT_SCALE 4
 #define OFFSET_X 560
 #define OFFSET_Y -3475
 #define IMAGE_SIZE 512 // Image size to see more than one chunk
@@ -13,9 +11,10 @@
 
 int offsetX = OFFSET_X;
 int offsetY = OFFSET_Y;
+float NOISE_HEIGHT_SCALE = 4.0f; // Changed this to be a mutable variable
 
 int main() {
-    InitWindow(512, 512, "Perlin Noise Debug");
+    InitWindow(IMAGE_SIZE, IMAGE_SIZE, "Perlin Noise Debug");
 
     Image perlinNoise = GenImagePerlinNoise(IMAGE_SIZE, IMAGE_SIZE, offsetX, offsetY, NOISE_HEIGHT_SCALE);
     ImageColorTint(&perlinNoise, (Color){ 127, 127, 255, 255 });
@@ -36,6 +35,9 @@ int main() {
             if(IsKeyDown(KEY_A)) offsetX -= SPEED;
             if(IsKeyDown(KEY_D)) offsetX += SPEED;
         }
+
+        if(IsKeyPressed(KEY_KP_ADD)) NOISE_HEIGHT_SCALE /= 1.1f;
+        if(IsKeyPressed(KEY_KP_SUBTRACT)) NOISE_HEIGHT_SCALE *= 1.1f;
 
         // Check for teleport mode
         if(IsKeyPressed(KEY_X)) {
@@ -80,7 +82,7 @@ int main() {
         }
         
         // Regenerate the noise if we moved
-        if(IsKeyDown(KEY_W) || IsKeyDown(KEY_S) || IsKeyDown(KEY_A) || IsKeyDown(KEY_D) || IsKeyPressed(KEY_ENTER)) {
+        if(IsKeyDown(KEY_W) || IsKeyDown(KEY_S) || IsKeyDown(KEY_A) || IsKeyDown(KEY_D) || IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_KP_ADD) || IsKeyPressed(KEY_KP_SUBTRACT)) {
             UnloadTexture(texture);
             UnloadImage(perlinNoise);
             
@@ -102,7 +104,7 @@ int main() {
 
         // Draw the coordinates
         char coordText[64];
-        sprintf(coordText, "X: %d, Y: %d", offsetX, offsetY);
+        sprintf(coordText, "X: %d, Y: %d, Scale: %.2f", offsetX, offsetY, NOISE_HEIGHT_SCALE);
         DrawText(coordText, GetScreenWidth() - MeasureText(coordText, 20) - 10, 10, 20, GREEN);
 
         EndDrawing();

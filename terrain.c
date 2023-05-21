@@ -1,5 +1,6 @@
 #include "terrain.h"
 #include "preferences.h"
+#include "FastNoiselite.h"
 
 Chunk *chunks = NULL;
 int chunksCount = 0;
