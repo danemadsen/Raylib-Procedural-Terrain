@@ -10,6 +10,8 @@ int main() {
     SetTargetFPS(60);
     DisableCursor(); // hide and lock the cursor
 
+    ProceduralTerrain terrain = { 0 };
+
     Camera3D camera = { 0 };
     camera.position = (Vector3){ 130.0f, 130.0f, 130.0f };
     camera.target = (Vector3){ 0.0f, 0.0f, 0.0f };
@@ -46,15 +48,15 @@ int main() {
         // Reset the rotation vector if the mouse is not moving
         if (mouseDelta.x == 0 && mouseDelta.y == 0) rotation = (Vector3){ 0.0f, 0.0f, 0.0f };
     
-        UpdateChunks(camera.position);
+        UpdateChunks(camera.position, &terrain);
 
         BeginDrawing();
         ClearBackground(RAYWHITE);
         BeginMode3D(camera);
 
-        for (int i = 0; i < chunksCount; i++)
-            if (chunks[i].loaded)
-                DrawModel(chunks[i].model, chunks[i].position, 1.0f, WHITE);
+        for (int i = 0; i < terrain.chunksCount; i++)
+            if (terrain.chunks[i].loaded)
+                DrawModel(terrain.chunks[i].model, terrain.chunks[i].position, 1.0f, WHITE);
         
         EndMode3D();
 
@@ -66,11 +68,11 @@ int main() {
         EndDrawing();
     }
 
-    for (int i = 0; i < chunksCount; i++)
-        if (chunks[i].loaded)
-            UnloadChunk(i);
+    for (int i = 0; i < terrain.chunksCount; i++)
+        if (terrain.chunks[i].loaded)
+            UnloadChunk(i, &terrain);
     
-    free(chunks);
+    free(terrain.chunks);
     CloseWindow();
     
     return 0;

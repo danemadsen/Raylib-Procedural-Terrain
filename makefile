@@ -4,14 +4,11 @@ LDFLAGS = -lraylib -L/usr/local/lib -Wl,-rpath=/usr/local/lib -lm
 PROJECTNAME = InfiniteTerrain
 
 main:
-	$(CC) $(CFLAGS) -c terrain.c -o terrain.o $(LDFLAGS)
-	$(CC) $(CFLAGS) -c main.c -o main.o $(LDFLAGS)
-	$(CC) $(CFLAGS) main.o terrain.o -o $(PROJECTNAME) $(LDFLAGS)
-	rm -f *.o
+	$(CC) $(CFLAGS) main.c -o $(PROJECTNAME)$(LDFLAGS)
 
 testing:
 	rm -f testing *.o
-	$(CC) $(CFLAGS) testing.c -o testing $(LDFLAGS)
+	$(CC) $(CFLAGS) testing.c -o testing $(LDFLAGS) -g
 
 .PHONY: clean
 clean:
