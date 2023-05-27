@@ -1,9 +1,16 @@
-#include "preferences.h"
 #include "rl_procedural.h"
 #include "raylib.h"
 #include "raymath.h"
 #include <stdlib.h>
 #include <stdio.h>
+
+#define WINDOW_WIDTH 1920
+#define WINDOW_HEIGHT 1080
+
+#define CAMERA_MOVEMENT_SPEED 30.0f
+#define CAMERA_ROTATION_SPEED 1.0f
+#define CAMERA_SPEEDUP_FACTOR 4.0f
+#define CAMERA_ZOOM 1.0f
 
 int main() {
     InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Raylib Infinite Terrain");
