@@ -1,14 +1,14 @@
 CC = gcc
 CFLAGS = -Wall -std=c99
-LDFLAGS = -lraylib -L/usr/local/lib -Wl,-rpath=/usr/local/lib -lm
+LDFLAGS = -lraylib -L/usr/local/lib -Wl,-rpath=/usr/local/lib -lm -g
 PROJECTNAME = InfiniteTerrain
 
 main:
-	$(CC) $(CFLAGS) main.c -o $(PROJECTNAME)$(LDFLAGS)
+	$(CC) $(CFLAGS) main.c -o $(PROJECTNAME) $(LDFLAGS)
 
 testing:
 	rm -f testing *.o
-	$(CC) $(CFLAGS) testing.c -o testing $(LDFLAGS) -g
+	$(CC) $(CFLAGS) testing.c -o testing $(LDFLAGS)
 
 .PHONY: clean
 clean:

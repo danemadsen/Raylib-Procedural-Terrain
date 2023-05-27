@@ -1,26 +1,28 @@
 #include "raylib.h"
 #include "raymath.h"
+#include "stb_perlin.h"
 #include <stdlib.h>
 
 typedef struct Chunk {
     Vector3 position;
     Model model;
-    bool loaded;
-    Texture2D texture;
+    Mesh mesh;
     Image perlinNoise;
+    bool loaded;
 } Chunk;
 
 typedef struct ProceduralTerrain {
     Chunk *chunks;
-    Material material;
 
     int chunksCount;
     int chunkSize;
     int chunkRenderDistance;
 
+    float elevationControl;
     int meshScale;
     float noiseScale;
 
+    int seed;
     int octaves;
     float lacunarity;
     float gain;
@@ -28,7 +30,7 @@ typedef struct ProceduralTerrain {
 
 void GenChunk(int index, ProceduralTerrain *terrain) {
     Chunk *chunk = &terrain->chunks[index];
-    
+
     int offsetX = chunk->position.x;
     int offsetY = chunk->position.z;
 
@@ -44,30 +46,37 @@ void GenChunk(int index, ProceduralTerrain *terrain) {
             float ny = (float)(y + offsetY)*(terrain->noiseScale/(float)height);
             float p = stb_perlin_fbm_noise3(nx, ny, 1.0f, terrain->lacunarity, terrain->gain, terrain->octaves);
 
+            // Map 'p' to a curve to adjust the terrain elevation distribution
+            p = p * (terrain->elevationControl * pow(p, 2) - terrain->elevationControl * p + 1.0f);
             if (p < -1.0f) p = -1.0f;
             if (p > 1.0f) p = 1.0f;
 
             float np = (p + 1.0f)/2.0f;
-
+    
             int intensity = (int)(np * 255.0f);
             pixels[y * width + x] = (Color){ intensity, intensity, intensity, 255 };
         }
     }
 
-    Mesh mesh = GenMeshHeightmap(chunk->perlinNoise, (Vector3){ terrain->chunkSize, terrain->meshScale, terrain->chunkSize });
-    chunk->model = LoadModelFromMesh(mesh);
-    
-    chunk->texture = LoadTextureFromImage(chunk->perlinNoise);
-    SetMaterialTexture(&chunk->model.materials[0], MATERIAL_MAP_DIFFUSE, chunk->texture);
-    
+    chunk->mesh = GenMeshHeightmap(chunk->perlinNoise, (Vector3){ terrain->chunkSize, terrain->meshScale, terrain->chunkSize });
+    chunk->model = LoadModelFromMesh(chunk->mesh);
+
+    Image image = ImageCopy(chunk->perlinNoise);
+    ImageColorTint(&image, (Color){ 0, 128, 0, 255 });
+    Texture2D texture = LoadTextureFromImage(image);
+
+    SetMaterialTexture(&chunk->model.materials[0], MATERIAL_MAP_DIFFUSE, texture);
     chunk->loaded = true;
 }
 
+
 void UnloadChunk(int index, ProceduralTerrain *terrain) {
     Chunk *chunk = &terrain->chunks[index];
-    UnloadModel(chunk->model);
-    UnloadTexture(chunk->texture);
-    UnloadImage(chunk->perlinNoise);
+    if (chunk->loaded) {
+        UnloadModel(chunk->model);
+        UnloadImage(chunk->perlinNoise);
+        chunk->loaded = false;
+    }
     
     for (int i = index; i < terrain->chunksCount - 1; i++)
         terrain->chunks[i] = terrain->chunks[i + 1];
@@ -75,11 +84,12 @@ void UnloadChunk(int index, ProceduralTerrain *terrain) {
     terrain->chunks = realloc(terrain->chunks, --terrain->chunksCount * sizeof(Chunk));
 }
 
+
 void UpdateChunks(Vector3 playerPosition, ProceduralTerrain *terrain) {
     Vector3 chunkPosition = {
-        floorf(playerPosition.x / terrain->chunkSize) * terrain->chunkSize,
+        (floorf(playerPosition.x / terrain->chunkSize) * terrain->chunkSize),
         0,
-        floorf(playerPosition.z / terrain->chunkSize) * terrain->chunkSize
+        (floorf(playerPosition.z / terrain->chunkSize) * terrain->chunkSize)
     };
     
     for (int i = 0; i < terrain->chunksCount; i++) {
@@ -105,9 +115,8 @@ void UpdateChunks(Vector3 playerPosition, ProceduralTerrain *terrain) {
                 terrain->chunks = realloc(terrain->chunks, ++terrain->chunksCount * sizeof(Chunk));
                 terrain->chunks[terrain->chunksCount - 1] = (Chunk){
                     .position = position,
-                    .model = (Model){ 0 },
+                    .model = (Model){ { 0 } },
                     .loaded = false,
-                    .texture = (Texture2D){ 0 }
                 };
             }
         }
