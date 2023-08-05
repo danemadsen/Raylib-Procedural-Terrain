@@ -41,6 +41,13 @@ int main() {
     Vector2 oldMousePos = GetMousePosition();
     bool cursorDisabled = true;
 
+    // setup materials
+    Material terrainMaterial = LoadMaterialDefault();
+    terrainMaterial.maps[MATERIAL_MAP_ALBEDO].texture = LoadTexture("materials/Grass04/Grass004_2K_Color.jpg");
+    terrainMaterial.maps[MATERIAL_MAP_NORMAL].texture = LoadTexture("materials/Grass04/Grass004_2K_NormalGL.jpg");
+    terrainMaterial.maps[MATERIAL_MAP_ROUGHNESS].texture = LoadTexture("materials/Grass04/Grass004_2K_Roughness.jpg");
+    terrainMaterial.maps[MATERIAL_MAP_OCCLUSION].texture = LoadTexture("materials/Grass04/Grass004_2K_AmbientOcclusion.jpg");
+
     while (!WindowShouldClose()) {
         // Check if F3 key has been pressed
         if (IsKeyPressed(KEY_F3)) {
@@ -79,7 +86,7 @@ int main() {
             if (mouseDelta.x == 0 && mouseDelta.y == 0) rotation = (Vector3){ 0.0f, 0.0f, 0.0f };
         }
         
-        UpdateChunks(camera.position, &terrain);
+        UpdateChunks(camera.position, &terrain, &terrainMaterial);
 
         BeginDrawing();
         ClearBackground(SKYBLUE);

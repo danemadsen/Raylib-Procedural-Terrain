@@ -28,7 +28,7 @@ typedef struct ProceduralTerrain {
     float gain;
 } ProceduralTerrain;
 
-void GenChunk(int index, ProceduralTerrain *terrain) {
+void GenChunk(int index, ProceduralTerrain *terrain, Material *terrainMaterial) {
     Chunk *chunk = &terrain->chunks[index];
 
     int offsetX = chunk->position.x;
@@ -60,12 +60,7 @@ void GenChunk(int index, ProceduralTerrain *terrain) {
 
     chunk->mesh = GenMeshHeightmap(chunk->perlinNoise, (Vector3){ terrain->chunkSize, terrain->meshScale, terrain->chunkSize });
     chunk->model = LoadModelFromMesh(chunk->mesh);
-
-    Image image = ImageCopy(chunk->perlinNoise);
-    ImageColorTint(&image, (Color){ 0, 128, 0, 255 });
-    Texture2D texture = LoadTextureFromImage(image);
-
-    SetMaterialTexture(&chunk->model.materials[0], MATERIAL_MAP_DIFFUSE, texture);
+    chunk->model.materials[0] = *terrainMaterial;
     chunk->loaded = true;
 }
 
@@ -85,7 +80,7 @@ void UnloadChunk(int index, ProceduralTerrain *terrain) {
 }
 
 
-void UpdateChunks(Vector3 playerPosition, ProceduralTerrain *terrain) {
+void UpdateChunks(Vector3 playerPosition, ProceduralTerrain *terrain, Material *terrainMaterial) {
     Vector3 chunkPosition = {
         (floorf(playerPosition.x / terrain->chunkSize) * terrain->chunkSize),
         0,
@@ -96,7 +91,7 @@ void UpdateChunks(Vector3 playerPosition, ProceduralTerrain *terrain) {
         if (Vector3Distance(terrain->chunks[i].position, chunkPosition) > terrain->chunkRenderDistance)
             UnloadChunk(i--, terrain);
         else if (!terrain->chunks[i].loaded)
-            GenChunk(i, terrain);
+            GenChunk(i, terrain, terrainMaterial);
     }
     
     for (int z = -terrain->chunkRenderDistance; z <= terrain->chunkRenderDistance; z += terrain->chunkSize) {
